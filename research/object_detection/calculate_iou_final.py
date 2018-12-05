@@ -1,5 +1,5 @@
 import csv
-from object_detection.ssdmodel import *
+from ssdmodel import *
 import cv2
 from sklearn import metrics
 import matplotlib.pyplot as plt
@@ -49,7 +49,10 @@ def imgpaths_from_dir(dir_name, ):
                 mylist.append(pathToImage)
     return mylist
     #  print(os.path.join(root,name))
-def imgpaths_from_arr(dir_name,filepath): #newly added
+
+
+
+def imgpaths_from_arr(dir_name,filepath):
     mylist = []
     truthDetection = truthStruct()
     with open(filepath, 'r') as csvfile:
@@ -63,8 +66,7 @@ def imgpaths_from_arr(dir_name,filepath): #newly added
                 mylist.append(pathToImage)
                 truthDetection.basename = row[0]
     return mylist
-
-
+    #  print(os.path.join(root,name))
 
 def write_boxes_to_CSV(all_entries, pred_csv):
     pred_boxes = []
@@ -79,14 +81,13 @@ def write_boxes_to_CSV(all_entries, pred_csv):
 
 def write_final_to_CSV(list_of_imageDetections, list_of_truthDetections, output_dir, total_run_time, mean_detection_time, std_det_time):
     model_name = os.path.basename((output_dir)) + "\n"
-    csvpath = output_dir + "/data.csv"
-    csvpath_delimited = output_dir + "/data_delimited.csv"
+    csvpath = output_dir + "\data.csv"
+    csvpath_delimited = output_dir + "\data_delimited.csv"
 
     with open(csvpath, 'w', newline = '') as csvfile, open(csvpath_delimited, 'w', newline = '') as csvfile_delimited:
 
         csvwrit_delim = csv.writer(csvfile_delimited)
         file_delim = []
-
         csvwriter = csv.writer(csvfile)
         header = "Name, Detection Number, Ground Truth Coordinates, Predicted Coordinates, Detected (0/1), IOU, Score, Time for Detection (ms) \n"
         file = []
@@ -141,7 +142,8 @@ def write_final_to_CSV(list_of_imageDetections, list_of_truthDetections, output_
         for line in file:
             csvwriter.writerow([line])
         for line in file_delim:
-            csvwrit_delim.writerow([line])
+            #csvwrit_delim.writerow([line])
+            csvfile_delimited.write(line)
 
 def get_plot_prediction_metrics(list_of_imageDetections, list_of_truthDetections,  outputdir):
     all_scores = []
@@ -171,7 +173,6 @@ def get_plot_prediction_metrics(list_of_imageDetections, list_of_truthDetections
     plt.xlabel('False Positive Rate')
     title = outputdir + "/roc_plt.png"
     plt.savefig(title, dpi=100)
-
     return roc_auc
 
 
@@ -182,11 +183,16 @@ def read_boxes_csv(filepath):
     with open(filepath, 'r') as csvfile:
         csvreader = csv.reader(csvfile)
         for ind, row in enumerate(csvreader):
+            #print(row)
             if row:
-                if (row[0] != truthDetection.basename):  # file is different from previous truthDetection
+                #print('Im here 1')
+                #print(row[0])
+                #print(truthDetection.basename)
+                if (row[0] != truthDetection.basename):
+                    #print('Im here 2')# file is different from previous truthDetection
                     if (truthDetection.basename != ''):  # not initial object
-                        list_of_truthDetections.append(truthDetection)  # add old truthDetection to list
-
+                        list_of_truthDetections.append(truthDetection)
+                        #print('Im here')# add old truthDetection to list
                     truthDetection = truthStruct()  # create a new one
                     truthDetection.path = ''
                     truthDetection.basename = row[0]
@@ -207,12 +213,17 @@ def calculate_all_iou(list_of_imageDetections, list_of_truthDetections):
     j = 0
 
     while i < len(list_of_imageDetections) and j < len(list_of_truthDetections):
+        print('Base name:')
+        print(list_of_imageDetections[i].basename)
+
         pred_filename = os.path.splitext(list_of_imageDetections[i].basename)[0]
         gt_filename = list_of_truthDetections[j].basename
 
         if int(pred_filename) == int(gt_filename):  # if same file name, start finding optimized iou
             # for all predicted bboxes, find the optimized iou
             all_truths = list_of_truthDetections[j].t_bbox_array[:]
+            print('Ground truth:')
+            print(all_truths[0])
             all_truths_copy = []
             for item in all_truths:
                 all_truths_copy.append(tuple(item))
@@ -266,7 +277,6 @@ def calculate_all_iou(list_of_imageDetections, list_of_truthDetections):
             list_of_imageDetections[i].iou_map[0] = -1
             i = i + 1
     # end while
-
     return list_of_imageDetections, list_of_truthDetections  # completed mapping for all images
 
 
@@ -302,6 +312,7 @@ def bb_intersection_over_union(boxA, boxB):
 
 def draw_iou_boxes(list_of_imageDetections, OUTPUT_DIR):
     all_gt = []
+    #print(OUTPUT_DIR)
     for i, image_path in enumerate(list_of_imageDetections):
 
         # set current image detection
@@ -351,7 +362,7 @@ def draw_iou_boxes(list_of_imageDetections, OUTPUT_DIR):
                 # compute the intersection over union and display it
                 cv2.putText(image, "IoU: {:.4f}".format(iou), textloc,
                             cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 255, 0), 2)
-                print("{}: {:.4f}".format(image_path, iou))
+                #print("{}: {:.4f}".format(image_path, iou))
 
         # show the output image
 
