@@ -49,6 +49,21 @@ def imgpaths_from_dir(dir_name, ):
                 mylist.append(pathToImage)
     return mylist
     #  print(os.path.join(root,name))
+def imgpaths_from_arr(dir_name,filepath): #newly added
+    mylist = []
+    truthDetection = truthStruct()
+    with open(filepath, 'r') as csvfile:
+        csvreader = csv.reader(csvfile)
+        root = dir_name
+        for ind, row in enumerate(csvreader):
+            if (row[0] != truthDetection.basename):
+                #name = '000000'+ str(row[0]) + '.jpg'  @ Only for MSCOCO 12_Dec_18
+                name = str(row[0]) + '.jpg'
+                pathToImage = os.path.join(root, name)
+                mylist.append(pathToImage)
+                truthDetection.basename = row[0]
+    return mylist
+
 
 
 def write_boxes_to_CSV(all_entries, pred_csv):
